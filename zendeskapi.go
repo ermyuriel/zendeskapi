@@ -5,10 +5,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
 	"net/url"
 	"os"
+	"reflect"
 
 	"github.com/joho/godotenv"
 )
@@ -117,16 +117,12 @@ func SearchUser(searchValue string) ([]User, error, *ErrorResponse) {
 	authenticateRequest(r)
 	r.Header.Set("Content-Type", "application/json")
 
-	printPrettyRequest(r)
-
 	resp, err := http.DefaultClient.Do(r)
 
 	if err != nil {
 
 		return nil, err, nil
 	}
-
-	printPrettyResponse(resp)
 
 	if resp.StatusCode != 200 {
 		er := &ErrorResponse{}
@@ -171,7 +167,7 @@ func UpdateUser(searchValue string, newData *User) (error, *ErrorResponse) {
 func CreateRelationshipType(source interface{}, key string, target interface{}) (error, *ErrorResponse) {
 	path := "/api/custom_resources/relationship_types"
 
-	cr := RelationshipCreate{Data: Relationship{Key: key, Source: source, Target: target}}
+	cr := RelationshipCreateRequest{Data: RelationshipCreate{Key: key, Source: source, Target: target}}
 
 	ts, err := bufferJSON(cr)
 	if err != nil {
@@ -199,18 +195,35 @@ func CreateRelationshipType(source interface{}, key string, target interface{}) 
 
 }
 
-func SetRelationship(source interface{}, key string, target interface{}) (error, *ErrorResponse) {
-	path := "/api/custom_resources/relationship_types"
+func SetRelationship(source interface{}, relationshipType string, target interface{}) (error, *ErrorResponse) {
+	path := "/api/custom_resources/relationships"
 
-	cr := RelationshipCreate{Data: Relationship{Key: key, Source: source, Target: target}}
+	var cr RelationshipCreateRequest
+
+	if reflect.TypeOf(target).Kind() == reflect.Slice {
+
+		temp := make([]string, 0)
+		for i := 0; i < reflect.ValueOf(target).Len(); i++ {
+			temp = append(temp, fmt.Sprintf("%s", reflect.ValueOf(target).Index(i)))
+
+		}
+
+		cr = RelationshipCreateRequest{Data: RelationshipSet{RelationshipType: relationshipType, Source: fmt.Sprintf("%s", source), Target: temp}}
+
+	} else {
+		cr = RelationshipCreateRequest{Data: RelationshipSet{RelationshipType: relationshipType, Source: fmt.Sprintf("%s", source), Target: fmt.Sprintf("%s", target)}}
+	}
 
 	ts, err := bufferJSON(cr)
+
 	if err != nil {
 		return err, nil
 	}
 	r, _ := http.NewRequest("POST", os.Getenv("ZENDESK_URL")+path, ts)
 	authenticateRequest(r)
 	r.Header.Set("Content-Type", "application/json")
+
+	printPrettyRequest(r)
 
 	resp, err := http.DefaultClient.Do(r)
 
@@ -239,7 +252,7 @@ func CreateObjectRecord(t string, attributes map[string]interface{}) (*ObjectRes
 
 		return nil, err, nil
 	}
-	log.Println(string(j))
+
 	o := ObjectRecordCreate{Type: t, Attributes: string(j)}
 	or := ObjectRequest{Data: o}
 	ts, err := bufferJSON(or)

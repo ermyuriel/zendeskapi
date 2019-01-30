@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"testing"
 	"time"
@@ -41,6 +42,7 @@ func TestUserSearch(t *testing.T) {
 	rs, err, er := SearchUser("eucj.mx")
 
 	if err != nil {
+		log.Println(err)
 		t.Fail()
 	}
 
@@ -56,23 +58,9 @@ func TestUserSearch(t *testing.T) {
 
 }
 
-func TestRelationshiTypeCreate(t *testing.T) {
+func TestRelationshipTypeCreate(t *testing.T) {
 
-	err, er := CreateRelationshipType("test_object", "has_test_object", "test_object")
-
-	if err != nil {
-		log.Println(err)
-		t.Fail()
-
-	}
-
-	if er != nil {
-		log.Println("Relationship not created")
-		printPrettyStruct(er)
-		t.Fail()
-	}
-
-	err, er = CreateRelationshipType("test_object", "has_test_objects", []string{"test_object"})
+	err, er := CreateRelationshipType("zen:user", "user_has_test_object", "test_object")
 
 	if err != nil {
 		log.Println(err)
@@ -83,9 +71,50 @@ func TestRelationshiTypeCreate(t *testing.T) {
 	if er != nil {
 		log.Println("Relationship not created")
 		printPrettyStruct(er)
-		t.Fail()
+
 	}
 
+	err, er = CreateRelationshipType("zen:user", "user_has_test_objects", []string{"test_object"})
+
+	if err != nil {
+		log.Println(err)
+		t.Fail()
+
+	}
+
+	if er != nil {
+		log.Println("Relationship not created")
+		printPrettyStruct(er)
+
+	}
+
+	err, er = CreateRelationshipType("test_object", "test_object_has_test_objects", []string{"test_object"})
+
+	if err != nil {
+		log.Println(err)
+		t.Fail()
+
+	}
+
+	if er != nil {
+		log.Println("Relationship not created")
+		printPrettyStruct(er)
+
+	}
+
+	err, er = CreateRelationshipType("test_object", "test_object_has_test_object", "test_object")
+
+	if err != nil {
+		log.Println(err)
+		t.Fail()
+
+	}
+
+	if er != nil {
+		log.Println("Relationship not created")
+		printPrettyStruct(er)
+
+	}
 }
 
 func TestObjectRecordCreatet(t *testing.T) {
@@ -102,9 +131,8 @@ func TestObjectRecordCreatet(t *testing.T) {
 	}
 
 	if er != nil {
-		log.Println("Relationship not created")
+		log.Println("Object not created")
 		printPrettyStruct(er)
-		t.Fail()
 	}
 	printPrettyStruct(orr)
 
@@ -115,14 +143,17 @@ func TestRelationshipRecordSet(t *testing.T) {
 	ts := getTestTimestamp()
 	uc := UserCreate{Name: "test_" + ts, Email: "test_" + ts + "@eucj.mx", Verified: true}
 	CreateUser(&uc)
-	rs, _, _ := SearchUser("@eucj.mx")
-
-	u := rs[0]
-	uid := u.ID
-
+	us, _, _ := SearchUser("test_" + ts + "@eucj.mx")
+	uid := us[0].ID
 	m := map[string]interface{}{"id": ts, "name": ts}
-	orr, err, er := CreateObjectRecord("test_object", m)
+	oss, _, _ := CreateObjectRecord("test_object", m)
+	sid := oss.Data.ID
+	t1, _, _ := CreateObjectRecord("test_object", m)
+	t2, _, _ := CreateObjectRecord("test_object", m)
+	t1ID := t1.Data.ID
+	t2ID := t2.Data.ID
 
+	err, er := SetRelationship(fmt.Sprintf("zen:user:%v", uid), "user_has_test_object", t1ID)
 	if err != nil {
 		log.Println(err)
 		t.Fail()
@@ -132,12 +163,43 @@ func TestRelationshipRecordSet(t *testing.T) {
 	if er != nil {
 		log.Println("Relationship not created")
 		printPrettyStruct(er)
-		t.Fail()
 	}
 
-	tid := orr.Data.ID
+	err, er = SetRelationship(fmt.Sprintf("zen:user:%v", uid), "user_has_test_objects", []string{t1ID, t2ID})
+	if err != nil {
+		log.Println(err)
+		t.Fail()
 
-	SetRelationship(uid, "has_test_objects", tid)
+	}
+
+	if er != nil {
+		log.Println("Relationship not created")
+		printPrettyStruct(er)
+	}
+
+	err, er = SetRelationship(sid, "test_object_has_test_object", t1ID)
+	if err != nil {
+		log.Println(err)
+		t.Fail()
+
+	}
+
+	if er != nil {
+		log.Println("Relationship not created")
+		printPrettyStruct(er)
+	}
+
+	err, er = SetRelationship(sid, "test_object_has_test_objects", []string{t1ID, t2ID})
+	if err != nil {
+		log.Println(err)
+		t.Fail()
+
+	}
+
+	if er != nil {
+		log.Println("Relationship not created")
+		printPrettyStruct(er)
+	}
 
 }
 

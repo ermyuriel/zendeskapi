@@ -65,14 +65,20 @@ type SearchUserResponse struct {
 type UserResponse struct {
 	User User `json:"user"`
 }
-type RelationshipCreate struct {
-	Data Relationship `json:"data"`
+type RelationshipCreateRequest struct {
+	Data interface{} `json:"data"`
 }
 
-type Relationship struct {
+type RelationshipCreate struct {
 	Key    string      `json:"key"`
 	Source interface{} `json:"source"`
 	Target interface{} `json:"target"`
+}
+
+type RelationshipSet struct {
+	RelationshipType string      `json:"relationship_type"`
+	Source           interface{} `json:"source"`
+	Target           interface{} `json:"target"`
 }
 
 type ErrorResponse struct {
