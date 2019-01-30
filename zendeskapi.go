@@ -10,13 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-
-	"github.com/joho/godotenv"
 )
-
-func init() {
-	godotenv.Load()
-}
 
 func authenticateRequest(r *http.Request) {
 
