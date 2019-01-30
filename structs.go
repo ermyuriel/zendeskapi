@@ -1,4 +1,4 @@
-package zendeskapi
+package main
 
 import "time"
 
@@ -43,8 +43,16 @@ type User struct {
 	UserFields           interface{}   `json:"user_fields"`
 }
 
+type UserCreate struct {
+	Name       string      `json:"name"`
+	Email      string      `json:"email"`
+	Phone      interface{} `json:"phone"`
+	Verified   bool        `json:"verified"`
+	UserFields interface{} `json:"user_fields"`
+}
+
 type UserRequest struct {
-	User User `json:"user"`
+	User UserCreate `json:"user"`
 }
 
 type SearchUserResponse struct {
@@ -56,4 +64,42 @@ type SearchUserResponse struct {
 
 type UserResponse struct {
 	User User `json:"user"`
+}
+type RelationshipCreate struct {
+	Data Relationship `json:"data"`
+}
+
+type Relationship struct {
+	Key    string      `json:"key"`
+	Source interface{} `json:"source"`
+	Target interface{} `json:"target"`
+}
+
+type ErrorResponse struct {
+	Errors []struct {
+		Code   string `json:"code"`
+		Status string `json:"status"`
+		Title  string `json:"title"`
+		Detail string `json:"detail"`
+	} `json:"errors"`
+}
+
+type ObjectRecordCreate struct {
+	Type       string      `json:"type"`
+	Attributes interface{} `json:"attributes"`
+}
+
+type ObjectRequest struct {
+	Data ObjectRecordCreate `json:"data"`
+}
+
+type ObjectResponse struct {
+	Data struct {
+		ID          string      `json:"id"`
+		Type        string      `json:"type"`
+		TypeVersion int         `json:"type_version"`
+		Attributes  interface{} `json:"attributes"`
+		CreatedAt   time.Time   `json:"created_at"`
+		UpdatedAt   time.Time   `json:"updated_at"`
+	} `json:"data"`
 }

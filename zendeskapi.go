@@ -1,26 +1,34 @@
-package zendeskapi
+package main
 
 import (
-	"bytes"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
+	"net/url"
 	"os"
 
 	"github.com/joho/godotenv"
 )
 
-//edouard.maire@luuna.mx
-
-//m1YaEHA9zD2cYhDi2zkxkFp1Ro5oy8xYWHrkq9P7
-
-//Authorization: ""
-
 func init() {
 
 	godotenv.Load()
+
+}
+
+func main() {
+
+	/* u := UserCreate{Name: "test_" + time.Now().Format("2006_01_02_03.04.05"), Email: time.Now().Format("2006_01_02_03.04.05") + "@luuna.mx", Verified: true}
+
+	printPrettyStruct(u)
+	CreateUser(&u)
+	m := map[string]interface{}{"id": "1", "name": "cosa"}
+	CreateObjectRecord("test_object", m)
+
+	*/
 
 }
 
@@ -32,16 +40,16 @@ func authenticateRequest(r *http.Request) {
 	r.Header.Add("Authorization", fmt.Sprintf("Basic %s", string(encoded)))
 }
 
-func createUser(u *User) (*UserResponse, error) {
+func CreateUser(u *UserCreate) (*UserResponse, error, *ErrorResponse) {
 
 	cu := UserRequest{User: *u}
-	j, err := json.Marshal(cu)
+	ts, err := bufferJSON(cu)
 	if err != nil {
-		return nil, err
+		return nil, err, nil
 	}
 	path := "/api/v2/users.json"
 
-	r, _ := http.NewRequest("POST", os.Getenv("ZENDESK_URL")+path, bytes.NewBuffer([]byte(j)))
+	r, _ := http.NewRequest("POST", os.Getenv("ZENDESK_URL")+path, ts)
 	authenticateRequest(r)
 	r.Header.Set("Content-Type", "application/json")
 
@@ -49,18 +57,25 @@ func createUser(u *User) (*UserResponse, error) {
 
 	if err != nil {
 
-		return nil, err
+		return nil, err, nil
+	}
+
+	if resp.StatusCode != 201 {
+		er := &ErrorResponse{}
+		json.NewDecoder(resp.Body).Decode(er)
+		return nil, nil, er
+
 	}
 
 	cur := &UserResponse{}
 
 	_ = json.NewDecoder(resp.Body).Decode(cur)
 
-	return cur, nil
+	return cur, nil, nil
 
 }
 
-func getUser(id int64) (*UserResponse, error) {
+func GetUser(id int64) (*UserResponse, error, *ErrorResponse) {
 
 	path := fmt.Sprintf("/api/v2/users/%v.json", id)
 
@@ -72,7 +87,7 @@ func getUser(id int64) (*UserResponse, error) {
 
 	if err != nil {
 
-		return nil, err
+		return nil, err, nil
 	}
 
 	cur := &UserResponse{}
@@ -81,25 +96,43 @@ func getUser(id int64) (*UserResponse, error) {
 
 	if err != nil {
 
-		return nil, err
+		return nil, err, nil
 	}
 
-	return cur, nil
+	if resp.StatusCode != 201 {
+		er := &ErrorResponse{}
+		json.NewDecoder(resp.Body).Decode(er)
+		return nil, nil, er
+
+	}
+
+	return cur, err, nil
 }
 
-func searchUser(value string) ([]User, error) {
+func SearchUser(searchValue string) ([]User, error, *ErrorResponse) {
 
-	path := fmt.Sprintf("/api/v2/users/search.json?query=%s", value)
+	path := fmt.Sprintf("/api/v2/users/search.json?query=%s", url.QueryEscape(searchValue))
 
 	r, _ := http.NewRequest("GET", os.Getenv("ZENDESK_URL")+path, nil)
 	authenticateRequest(r)
 	r.Header.Set("Content-Type", "application/json")
 
+	printPrettyRequest(r)
+
 	resp, err := http.DefaultClient.Do(r)
 
 	if err != nil {
 
-		return nil, err
+		return nil, err, nil
+	}
+
+	printPrettyResponse(resp)
+
+	if resp.StatusCode != 200 {
+		er := &ErrorResponse{}
+		json.NewDecoder(resp.Body).Decode(er)
+		return nil, nil, er
+
 	}
 
 	sur := &SearchUserResponse{}
@@ -108,31 +141,138 @@ func searchUser(value string) ([]User, error) {
 
 	if err != nil {
 
-		return nil, err
+		return nil, err, nil
 	}
 
-	return sur.Users, nil
+	return sur.Users, nil, nil
 }
 
-func updateUser(email string, newData *User) error {
+func UpdateUser(searchValue string, newData *User) (error, *ErrorResponse) {
 
-	targets, err := searchUser(email)
+	targets, err, _ := SearchUser(searchValue)
 
 	if err != nil {
-		return err
+		return err, nil
 
 	}
 
 	if len(targets) == 0 {
-		return errors.New("No users found")
+		return errors.New("No users found"), nil
 	}
 
 	if len(targets) > 1 {
-		return errors.New("Ambiguous user search")
+		return errors.New("Ambiguous user search"), nil
 	}
 
-	return nil
+	return nil, nil
 
 }
 
-func createRelationshipType() {}
+func CreateRelationshipType(source interface{}, key string, target interface{}) (error, *ErrorResponse) {
+	path := "/api/custom_resources/relationship_types"
+
+	cr := RelationshipCreate{Data: Relationship{Key: key, Source: source, Target: target}}
+
+	ts, err := bufferJSON(cr)
+	if err != nil {
+		return err, nil
+	}
+	r, _ := http.NewRequest("POST", os.Getenv("ZENDESK_URL")+path, ts)
+	authenticateRequest(r)
+	r.Header.Set("Content-Type", "application/json")
+
+	resp, err := http.DefaultClient.Do(r)
+
+	if err != nil {
+
+		return err, nil
+	}
+
+	if resp.StatusCode != 200 {
+		er := &ErrorResponse{}
+		json.NewDecoder(resp.Body).Decode(er)
+		return nil, er
+
+	}
+
+	return nil, nil
+
+}
+
+func SetRelationship(source interface{}, key string, target interface{}) (error, *ErrorResponse) {
+	path := "/api/custom_resources/relationship_types"
+
+	cr := RelationshipCreate{Data: Relationship{Key: key, Source: source, Target: target}}
+
+	ts, err := bufferJSON(cr)
+	if err != nil {
+		return err, nil
+	}
+	r, _ := http.NewRequest("POST", os.Getenv("ZENDESK_URL")+path, ts)
+	authenticateRequest(r)
+	r.Header.Set("Content-Type", "application/json")
+
+	resp, err := http.DefaultClient.Do(r)
+
+	if err != nil {
+
+		return err, nil
+	}
+
+	if resp.StatusCode != 201 {
+		er := &ErrorResponse{}
+		json.NewDecoder(resp.Body).Decode(er)
+		return nil, er
+
+	}
+
+	return nil, nil
+
+}
+
+func CreateObjectRecord(t string, attributes map[string]interface{}) (*ObjectResponse, error, *ErrorResponse) {
+
+	path := "/api/custom_resources/resources"
+
+	j, err := json.Marshal(attributes)
+	if err != nil {
+
+		return nil, err, nil
+	}
+	log.Println(string(j))
+	o := ObjectRecordCreate{Type: t, Attributes: string(j)}
+	or := ObjectRequest{Data: o}
+	ts, err := bufferJSON(or)
+	if err != nil {
+		return nil, err, nil
+	}
+	r, _ := http.NewRequest("POST", os.Getenv("ZENDESK_URL")+path, ts)
+	authenticateRequest(r)
+	r.Header.Set("Content-Type", "application/json")
+
+	resp, err := http.DefaultClient.Do(r)
+
+	if err != nil {
+
+		return nil, err, nil
+	}
+
+	if resp.StatusCode != 201 {
+		er := &ErrorResponse{}
+		json.NewDecoder(resp.Body).Decode(er)
+		return nil, nil, er
+
+	}
+
+	orr := &ObjectResponse{}
+
+	err = json.NewDecoder(resp.Body).Decode(orr)
+
+	if err != nil {
+
+		return nil, err, nil
+	}
+
+	return orr, nil, nil
+
+}
