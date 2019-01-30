@@ -1,4 +1,4 @@
-package main
+package zendeskapi
 
 import (
 	"encoding/base64"
@@ -9,28 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-
-	"github.com/joho/godotenv"
 )
-
-func init() {
-
-	godotenv.Load()
-
-}
-
-func main() {
-
-	/* u := UserCreate{Name: "test_" + time.Now().Format("2006_01_02_03.04.05"), Email: time.Now().Format("2006_01_02_03.04.05") + "@luuna.mx", Verified: true}
-
-	printPrettyStruct(u)
-	CreateUser(&u)
-	m := map[string]interface{}{"id": "1", "name": "cosa"}
-	CreateObjectRecord("test_object", m)
-
-	*/
-
-}
 
 func authenticateRequest(r *http.Request) {
 
