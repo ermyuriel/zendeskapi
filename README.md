@@ -1,8 +1,8 @@
 # zendeskapi
 
-Go implementation of Zendesk API methods, intended to facilitate Sunshine custom objects development.
+Reference Go implementation of Zendesk API methods to facilitate Sunshine custom objects development and integration. Used internally at Luuna.mx.
 
-Intended to be used as reference, as it was built for very specific purpose. Attribution, if warrented, is appreciated.
+Credit, if warranted, is appreciated.
 
 
 License
