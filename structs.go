@@ -55,7 +55,7 @@ type UserRequest struct {
 	User UserCreate `json:"user"`
 }
 
-type SearchUserResponse struct {
+type UserSearchResponse struct {
 	Users        []User      `json:"users"`
 	NextPage     interface{} `json:"next_page"`
 	PreviousPage interface{} `json:"previous_page"`
@@ -65,17 +65,17 @@ type SearchUserResponse struct {
 type UserResponse struct {
 	User User `json:"user"`
 }
-type RelationshipCreateRequest struct {
+type RelationshipRequest struct {
 	Data interface{} `json:"data"`
 }
 
-type RelationshipCreate struct {
+type RelationshipTypeCreate struct {
 	Key    string      `json:"key"`
 	Source interface{} `json:"source"`
 	Target interface{} `json:"target"`
 }
 
-type RelationshipSet struct {
+type RelationshipRecordCreate struct {
 	RelationshipType string      `json:"relationship_type"`
 	Source           interface{} `json:"source"`
 	Target           interface{} `json:"target"`
@@ -108,4 +108,18 @@ type ObjectResponse struct {
 		CreatedAt   time.Time   `json:"created_at"`
 		UpdatedAt   time.Time   `json:"updated_at"`
 	} `json:"data"`
+}
+
+type RelationshipSearchResponse struct {
+	Data  []Relationship `json:"data"`
+	Links struct {
+		Previous interface{} `json:"previous"`
+		Next     interface{} `json:"next"`
+	} `json:"links"`
+}
+
+type Relationship struct {
+	ID     string `json:"id"`
+	Target string `json:"target"`
+	Ref    string `json:"ref"`
 }

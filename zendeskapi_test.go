@@ -153,7 +153,7 @@ func TestRelationshipRecordSet(t *testing.T) {
 	t1ID := t1.Data.ID
 	t2ID := t2.Data.ID
 
-	err, er := SetRelationship(fmt.Sprintf("zen:user:%v", uid), "user_has_test_object", t1ID)
+	err, er := CreateRelationshipRecord(fmt.Sprintf("zen:user:%v", uid), "user_has_test_object", t1ID)
 	if err != nil {
 		log.Println(err)
 		t.Fail()
@@ -165,7 +165,7 @@ func TestRelationshipRecordSet(t *testing.T) {
 		printPrettyStruct(er)
 	}
 
-	err, er = SetRelationship(fmt.Sprintf("zen:user:%v", uid), "user_has_test_objects", []string{t1ID, t2ID})
+	err, er = CreateRelationshipRecord(fmt.Sprintf("zen:user:%v", uid), "user_has_test_objects", t1ID)
 	if err != nil {
 		log.Println(err)
 		t.Fail()
@@ -177,7 +177,7 @@ func TestRelationshipRecordSet(t *testing.T) {
 		printPrettyStruct(er)
 	}
 
-	err, er = SetRelationship(sid, "test_object_has_test_object", t1ID)
+	err, er = CreateRelationshipRecord(fmt.Sprintf("zen:user:%v", uid), "user_has_test_objects", t2ID)
 	if err != nil {
 		log.Println(err)
 		t.Fail()
@@ -189,7 +189,7 @@ func TestRelationshipRecordSet(t *testing.T) {
 		printPrettyStruct(er)
 	}
 
-	err, er = SetRelationship(sid, "test_object_has_test_objects", []string{t1ID, t2ID})
+	err, er = CreateRelationshipRecord(sid, "test_object_has_test_object", t1ID)
 	if err != nil {
 		log.Println(err)
 		t.Fail()
@@ -201,6 +201,33 @@ func TestRelationshipRecordSet(t *testing.T) {
 		printPrettyStruct(er)
 	}
 
+	err, er = CreateRelationshipRecord(sid, "test_object_has_test_objects", t1ID)
+	if err != nil {
+		log.Println(err)
+		t.Fail()
+
+	}
+
+	if er != nil {
+		log.Println("Relationship not created")
+		printPrettyStruct(er)
+	}
+
+	err, er = CreateRelationshipRecord(sid, "test_object_has_test_objects", t2ID)
+	if err != nil {
+		log.Println(err)
+		t.Fail()
+
+	}
+
+	if er != nil {
+		log.Println("Relationship not created")
+		printPrettyStruct(er)
+	}
+
+	rs, _, _ := ListRelationships("zen:user:"+fmt.Sprintf("%v", uid), "user_has_test_objects")
+
+	printPrettyStruct(rs)
 }
 
 func getTestTimestamp() string {

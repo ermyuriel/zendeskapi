@@ -5,10 +5,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
-	"reflect"
 
 	"github.com/joho/godotenv"
 )
@@ -131,7 +131,7 @@ func SearchUser(searchValue string) ([]User, error, *ErrorResponse) {
 
 	}
 
-	sur := &SearchUserResponse{}
+	sur := &UserSearchResponse{}
 
 	err = json.NewDecoder(resp.Body).Decode(sur)
 
@@ -167,7 +167,7 @@ func UpdateUser(searchValue string, newData *User) (error, *ErrorResponse) {
 func CreateRelationshipType(source interface{}, key string, target interface{}) (error, *ErrorResponse) {
 	path := "/api/custom_resources/relationship_types"
 
-	cr := RelationshipCreateRequest{Data: RelationshipCreate{Key: key, Source: source, Target: target}}
+	cr := RelationshipRequest{Data: RelationshipTypeCreate{Key: key, Source: source, Target: target}}
 
 	ts, err := bufferJSON(cr)
 	if err != nil {
@@ -195,24 +195,10 @@ func CreateRelationshipType(source interface{}, key string, target interface{}) 
 
 }
 
-func SetRelationship(source interface{}, relationshipType string, target interface{}) (error, *ErrorResponse) {
+func CreateRelationshipRecord(source interface{}, relationshipType string, target interface{}) (error, *ErrorResponse) {
 	path := "/api/custom_resources/relationships"
 
-	var cr RelationshipCreateRequest
-
-	if reflect.TypeOf(target).Kind() == reflect.Slice {
-
-		temp := make([]string, 0)
-		for i := 0; i < reflect.ValueOf(target).Len(); i++ {
-			temp = append(temp, fmt.Sprintf("%s", reflect.ValueOf(target).Index(i)))
-
-		}
-
-		cr = RelationshipCreateRequest{Data: RelationshipSet{RelationshipType: relationshipType, Source: fmt.Sprintf("%s", source), Target: temp}}
-
-	} else {
-		cr = RelationshipCreateRequest{Data: RelationshipSet{RelationshipType: relationshipType, Source: fmt.Sprintf("%s", source), Target: fmt.Sprintf("%s", target)}}
-	}
+	cr := RelationshipRequest{Data: RelationshipRecordCreate{RelationshipType: relationshipType, Source: fmt.Sprintf("%s", source), Target: fmt.Sprintf("%s", target)}}
 
 	ts, err := bufferJSON(cr)
 
@@ -222,8 +208,6 @@ func SetRelationship(source interface{}, relationshipType string, target interfa
 	r, _ := http.NewRequest("POST", os.Getenv("ZENDESK_URL")+path, ts)
 	authenticateRequest(r)
 	r.Header.Set("Content-Type", "application/json")
-
-	printPrettyRequest(r)
 
 	resp, err := http.DefaultClient.Do(r)
 
@@ -241,6 +225,45 @@ func SetRelationship(source interface{}, relationshipType string, target interfa
 
 	return nil, nil
 
+}
+
+func ListRelationships(objectID string, relationshipType string) ([]Relationship, error, *ErrorResponse) {
+
+	path := fmt.Sprintf("/api/custom_resources/resources/%s/relationships/%s", objectID, relationshipType)
+
+	r, err := http.NewRequest("GET", os.Getenv("ZENDESK_URL")+path, nil)
+	if err != nil {
+		log.Println(err)
+
+		return nil, err, nil
+	}
+	authenticateRequest(r)
+	r.Header.Set("Content-Type", "application/json")
+
+	resp, err := http.DefaultClient.Do(r)
+
+	if err != nil {
+
+		return nil, err, nil
+	}
+
+	if resp.StatusCode != 200 {
+		er := &ErrorResponse{}
+		json.NewDecoder(resp.Body).Decode(er)
+		return nil, nil, er
+
+	}
+
+	rsr := &RelationshipSearchResponse{}
+
+	err = json.NewDecoder(resp.Body).Decode(rsr)
+
+	if err != nil {
+
+		return nil, err, nil
+	}
+
+	return rsr.Data, nil, nil
 }
 
 func CreateObjectRecord(t string, attributes map[string]interface{}) (*ObjectResponse, error, *ErrorResponse) {
