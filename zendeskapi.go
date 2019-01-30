@@ -1,6 +1,7 @@
 package zendeskapi
 
 import (
+	"bytes"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -9,7 +10,13 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+
+	"github.com/joho/godotenv"
 )
+
+func init() {
+	godotenv.Load()
+}
 
 func authenticateRequest(r *http.Request) {
 
@@ -163,7 +170,7 @@ func CreateRelationshipType(source interface{}, key string, target interface{}) 
 		return err, nil
 	}
 
-	if resp.StatusCode != 200 {
+	if resp.StatusCode != 201 {
 		er := &ErrorResponse{}
 		json.NewDecoder(resp.Body).Decode(er)
 		return nil, er
@@ -289,5 +296,32 @@ func CreateObjectRecord(t string, attributes map[string]interface{}) (*ObjectRes
 	}
 
 	return orr, nil, nil
+
+}
+
+func CreateObjectType(data string) (error, *ErrorResponse) {
+	path := "/api/custom_resources/resource_types"
+
+	r, _ := http.NewRequest("POST", os.Getenv("ZENDESK_URL")+path, bytes.NewBuffer([]byte(data)))
+	authenticateRequest(r)
+	r.Header.Set("Content-Type", "application/json")
+
+	printPrettyRequest(r)
+
+	resp, err := http.DefaultClient.Do(r)
+
+	if err != nil {
+
+		return err, nil
+	}
+	printPrettyResponse(resp)
+	if resp.StatusCode != 201 {
+		er := &ErrorResponse{}
+		json.NewDecoder(resp.Body).Decode(er)
+		return nil, er
+
+	}
+
+	return nil, nil
 
 }

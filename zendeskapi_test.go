@@ -58,6 +58,26 @@ func TestUserSearch(t *testing.T) {
 
 }
 
+func TestObjectTypeCreate(t *testing.T) {
+
+	ts := getTestTimestamp()
+	schema := fmt.Sprintf("{\r\n  \"data\": {\r\n    \"key\": \"test_object_%s\",\r\n    \"schema\": {\r\n      \"properties\": {\r\n        \"id\": {\r\n          \"type\": \"string\",\r\n          \"description\": \"test at %s\"\r\n        },\r\n        \"name\": {\r\n          \"type\": \"string\",\r\n          \"description\": \"product name\"\r\n        }\r\n      },\r\n      \"required\": [\r\n        \"id\",\r\n        \"name\"\r\n      ]\r\n    }\r\n  }\r\n}", ts, ts)
+
+	err, er := CreateObjectType(schema)
+
+	if err != nil {
+		log.Println(err)
+		t.Fail()
+
+	}
+
+	if er != nil {
+		log.Println("Object not created")
+		printPrettyStruct(er)
+
+	}
+
+}
 func TestRelationshipTypeCreate(t *testing.T) {
 
 	err, er := CreateRelationshipType("zen:user", "user_has_test_object", "test_object")
@@ -232,6 +252,6 @@ func TestRelationshipRecordSet(t *testing.T) {
 
 func getTestTimestamp() string {
 
-	return time.Now().Format("2006_01_02_03.04.05")
+	return time.Now().Format("2006_01_02_03-04-05")
 
 }
