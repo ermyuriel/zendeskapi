@@ -300,15 +300,13 @@ func CreateObjectType(data string) (error, *ErrorResponse) {
 	authenticateRequest(r)
 	r.Header.Set("Content-Type", "application/json")
 
-	printPrettyRequest(r)
-
 	resp, err := http.DefaultClient.Do(r)
 
 	if err != nil {
 
 		return err, nil
 	}
-	printPrettyResponse(resp)
+
 	if resp.StatusCode != 201 {
 		er := &ErrorResponse{}
 		json.NewDecoder(resp.Body).Decode(er)
