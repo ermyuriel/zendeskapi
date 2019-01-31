@@ -209,6 +209,31 @@ func CreateRelationshipRecord(source interface{}, relationshipType string, targe
 
 }
 
+func DeleteRelationshipRecord(id string) (error, *ErrorResponse) {
+	path := fmt.Sprintf("/api/custom_resources/relationships/%s", id)
+
+	r, _ := http.NewRequest("DELETE", os.Getenv("ZENDESK_URL")+path, nil)
+	authenticateRequest(r)
+	r.Header.Set("Content-Type", "application/json")
+
+	resp, err := http.DefaultClient.Do(r)
+
+	if err != nil {
+
+		return err, nil
+	}
+
+	if resp.StatusCode != 204 {
+		er := &ErrorResponse{}
+		json.NewDecoder(resp.Body).Decode(er)
+		return nil, er
+
+	}
+
+	return nil, nil
+
+}
+
 func ListRelationships(objectID string, relationshipType string) ([]Relationship, error, *ErrorResponse) {
 
 	path := fmt.Sprintf("/api/custom_resources/resources/%s/relationships/%s", objectID, relationshipType)

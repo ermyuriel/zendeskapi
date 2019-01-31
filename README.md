@@ -4,7 +4,6 @@ Reference Go implementation of Zendesk API methods to facilitate Sunshine custom
 
 Credit, if warranted, is appreciated.
 
-
 License
 ----
 
