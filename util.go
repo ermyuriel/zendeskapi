@@ -25,6 +25,10 @@ func StructToSchema(s interface{}) string {
 
 	for i := 0; i < v.NumField(); i++ {
 
+		if v.Field(i).Kind() == reflect.Struct {
+			continue
+		}
+
 		var t string
 
 		switch v.Field(i).Kind() {
