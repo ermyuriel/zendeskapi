@@ -17,8 +17,6 @@ func StructToSchema(s interface{}) string {
 	re := regexp.MustCompile(".*\\.")
 	name := re.ReplaceAllString(reflect.TypeOf(s).String(), "")
 
-	//name := strings.Replace(reflect.TypeOf(s).String(), ".", "_", -1)
-
 	schema := "{\"data\": {\"key\":" + fmt.Sprintf("\"%s\",\"schema\": {\"properties\": {", name)
 
 	v := reflect.ValueOf(s)
@@ -58,7 +56,7 @@ func StructToSchema(s interface{}) string {
 
 	schema += strings.Join(properties, ",") + "}}}}"
 
-	log.Println(schema)
+	schema = strings.ToLower(schema)
 
 	return schema
 

@@ -303,14 +303,10 @@ func CreateObjectType(structure interface{}) (error, *ErrorResponse) {
 
 	resp, err := http.DefaultClient.Do(r)
 
-	printPrettyRequest(r)
-
 	if err != nil {
 
 		return err, nil
 	}
-
-	printPrettyResponse(resp)
 
 	if resp.StatusCode != 201 {
 		er := &ErrorResponse{}
