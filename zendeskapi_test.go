@@ -9,10 +9,7 @@ import (
 
 func TestUserCreation(t *testing.T) {
 
-	u := UserCreate{Name: "test_" + getTestTimestamp(), Email: "test_" + getTestTimestamp() + "@eucj.mx", Verified: true}
-
-	printPrettyStruct(u)
-	cu, e, er := CreateUser(&u)
+	cu, e, er := CreateUser("test_"+getTestTimestamp(), "test_"+getTestTimestamp()+"@eucj.mx")
 	if e != nil {
 		log.Println(e)
 		t.Fail()
@@ -161,8 +158,8 @@ func TestObjectRecordCreatet(t *testing.T) {
 func TestRelationshipRecordSet(t *testing.T) {
 
 	ts := getTestTimestamp()
-	uc := UserCreate{Name: "test_" + ts, Email: "test_" + ts + "@eucj.mx", Verified: true}
-	CreateUser(&uc)
+
+	CreateUser("test_"+ts, "test_"+ts+"@eucj.mx")
 	us, _, _ := SearchUser("test_" + ts + "@eucj.mx")
 	uid := us[0].ID
 	m := map[string]interface{}{"id": ts, "name": ts}
@@ -265,6 +262,6 @@ func getTestTimestamp() string {
 }
 
 type TestType struct {
-	X int
-	Y string
+	x int
+	y string
 }

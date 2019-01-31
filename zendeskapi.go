@@ -20,9 +20,11 @@ func authenticateRequest(r *http.Request) {
 	r.Header.Add("Authorization", fmt.Sprintf("Basic %s", string(encoded)))
 }
 
-func CreateUser(u *UserCreate) (*UserResponse, error, *ErrorResponse) {
+func CreateUser(name, email string) (*UserResponse, error, *ErrorResponse) {
 
-	cu := UserRequest{User: *u}
+	u := UserCreate{Name: name, Email: email, Verified: true}
+
+	cu := UserRequest{User: u}
 	ts, err := bufferJSON(cu)
 	if err != nil {
 		return nil, err, nil
