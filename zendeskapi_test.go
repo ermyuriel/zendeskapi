@@ -61,9 +61,9 @@ func TestUserSearch(t *testing.T) {
 func TestObjectTypeCreate(t *testing.T) {
 
 	ts := getTestTimestamp()
-	schema := fmt.Sprintf("{\r\n  \"data\": {\r\n    \"key\": \"test_object_%s\",\r\n    \"schema\": {\r\n      \"properties\": {\r\n        \"id\": {\r\n          \"type\": \"string\",\r\n          \"description\": \"test at %s\"\r\n        },\r\n        \"name\": {\r\n          \"type\": \"string\",\r\n          \"description\": \"product name\"\r\n        }\r\n      },\r\n      \"required\": [\r\n        \"id\",\r\n        \"name\"\r\n      ]\r\n    }\r\n  }\r\n}", ts, ts)
+	s := TestType{1, ts}
 
-	err, er := CreateObjectType(schema)
+	err, er := CreateObjectType(s)
 
 	if err != nil {
 		log.Println(err)
@@ -250,8 +250,21 @@ func TestRelationshipRecordSet(t *testing.T) {
 	printPrettyStruct(rs)
 }
 
+func TestStructToSchema(t *testing.T) {
+	s := TestType{1, "test"}
+
+	StructToSchema(s)
+	t.Fail()
+
+}
+
 func getTestTimestamp() string {
 
 	return time.Now().Format("2006_01_02_03-04-05")
 
+}
+
+type TestType struct {
+	X int
+	Y string
 }
