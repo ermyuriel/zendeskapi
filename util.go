@@ -92,6 +92,7 @@ func printPrettyStruct(d interface{}) {
 func bufferJSON(s interface{}) (*bytes.Buffer, error) {
 
 	j, err := json.Marshal(s)
+
 	if err != nil {
 		return nil, err
 	}

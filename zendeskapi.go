@@ -248,19 +248,15 @@ func ListRelationships(objectID string, relationshipType string) ([]Relationship
 	return rsr.Data, nil, nil
 }
 
-func CreateObjectRecord(t string, attributes map[string]interface{}) (*ObjectResponse, error, *ErrorResponse) {
+func CreateObjectRecord(t string, attributes interface{}) (*ObjectResponse, error, *ErrorResponse) {
 
 	path := "/api/custom_resources/resources"
 
-	j, err := json.Marshal(attributes)
-	if err != nil {
-
-		return nil, err, nil
-	}
-
-	o := ObjectRecordCreate{Type: t, Attributes: string(j)}
+	o := ObjectRecordCreate{Type: t, Attributes: attributes}
 	or := ObjectRequest{Data: o}
+
 	ts, err := bufferJSON(or)
+
 	if err != nil {
 		return nil, err, nil
 	}
