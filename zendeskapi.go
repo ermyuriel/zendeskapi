@@ -234,9 +234,48 @@ func DeleteRelationshipRecord(id string) (error, *ErrorResponse) {
 
 }
 
-func ListRelationships(objectID string, relationshipType string) ([]Relationship, error, *ErrorResponse) {
+func ListObjectRelationships(objectID string, relationshipType string) ([]Relationship, error, *ErrorResponse) {
 
 	path := fmt.Sprintf("/api/custom_resources/resources/%s/relationships/%s", objectID, relationshipType)
+
+	r, err := http.NewRequest("GET", os.Getenv("ZENDESK_URL")+path, nil)
+	if err != nil {
+		log.Println(err)
+
+		return nil, err, nil
+	}
+	authenticateRequest(r)
+	r.Header.Set("Content-Type", "application/json")
+
+	resp, err := http.DefaultClient.Do(r)
+
+	if err != nil {
+
+		return nil, err, nil
+	}
+
+	if resp.StatusCode != 200 {
+		er := &ErrorResponse{}
+		json.NewDecoder(resp.Body).Decode(er)
+		return nil, nil, er
+
+	}
+
+	rsr := &RelationshipSearchResponse{}
+
+	err = json.NewDecoder(resp.Body).Decode(rsr)
+
+	if err != nil {
+
+		return nil, err, nil
+	}
+
+	return rsr.Data, nil, nil
+}
+
+func ListRelationshipsByType(relationshipType string) ([]Relationship, error, *ErrorResponse) {
+
+	path := fmt.Sprintf("/api/custom_resources/relationships?type=%s", relationshipType)
 
 	r, err := http.NewRequest("GET", os.Getenv("ZENDESK_URL")+path, nil)
 	if err != nil {

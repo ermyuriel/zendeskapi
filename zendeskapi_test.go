@@ -243,7 +243,7 @@ func TestRelationshipRecordSet(t *testing.T) {
 		printPrettyStruct(er)
 	}
 
-	rs, _, _ := ListRelationships("zen:user:"+fmt.Sprintf("%v", uid), "user_has_test_objects")
+	rs, _, _ := ListObjectRelationships("zen:user:"+fmt.Sprintf("%v", uid), "user_has_test_objects")
 
 	printPrettyStruct(rs)
 }
@@ -264,7 +264,7 @@ func TestRelationshipRecordDelete(t *testing.T) {
 
 	CreateRelationshipRecord(fmt.Sprintf("zen:user:%v", uid), "user_has_test_object", t1ID)
 
-	rs, _, _ := ListRelationships("zen:user:"+fmt.Sprintf("%v", uid), "user_has_test_object")
+	rs, _, _ := ListObjectRelationships("zen:user:"+fmt.Sprintf("%v", uid), "user_has_test_object")
 	log.Println(len(rs))
 	for _, r := range rs {
 
@@ -272,7 +272,39 @@ func TestRelationshipRecordDelete(t *testing.T) {
 
 	}
 
-	rs, _, _ = ListRelationships("zen:user:"+fmt.Sprintf("%v", uid), "user_has_test_object")
+	rs, _, _ = ListObjectRelationships("zen:user:"+fmt.Sprintf("%v", uid), "user_has_test_object")
+
+	if len(rs) != 0 {
+		t.Fail()
+	}
+
+}
+
+func TestRelationshipTypeRecordDelete(t *testing.T) {
+
+	ts := getTestTimestamp()
+
+	CreateUser("test_"+ts, "test_"+ts+"@eucj.mx")
+	us, _, _ := SearchUser("test_" + ts + "@eucj.mx")
+	uid := us[0].ID
+
+	m := TestType{1, ts}
+
+	t1, _, _ := CreateObjectRecord("test_object", m)
+
+	t1ID := t1.Data.ID
+
+	CreateRelationshipRecord(fmt.Sprintf("zen:user:%v", uid), "user_has_test_object", t1ID)
+
+	rs, _, _ := ListRelationshipsByType("user_has_test_object")
+	log.Println(len(rs))
+	for _, r := range rs {
+
+		DeleteRelationshipRecord(r.ID)
+
+	}
+
+	rs, _, _ = ListRelationshipsByType("user_has_test_object")
 
 	if len(rs) != 0 {
 		t.Fail()
