@@ -296,7 +296,7 @@ func CreateObjectRecord(t string, attributes map[string]interface{}) (*ObjectRes
 func CreateObjectType(structure interface{}) (error, *ErrorResponse) {
 	path := "/api/custom_resources/resource_types"
 	schema := StructToSchema(structure)
-	log.Println(schema)
+
 	r, _ := http.NewRequest("POST", os.Getenv("ZENDESK_URL")+path, bytes.NewBuffer([]byte(schema)))
 	authenticateRequest(r)
 	r.Header.Set("Content-Type", "application/json")
