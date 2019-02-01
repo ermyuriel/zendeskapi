@@ -84,21 +84,54 @@ func CreateUser(name, email string) (*UserResponse, error, *ErrorResponse) {
 		return nil, err, nil
 	}
 	path := "/api/v2/users.json"
-
 	r, _ := http.NewRequest("POST", os.Getenv("ZENDESK_URL")+path, ts)
-	authenticateRequest(r)
 	r.Header.Set("Content-Type", "application/json")
-
-	printPrettyRequest(r)
+	authenticateRequest(r)
 	resp, err := http.DefaultClient.Do(r)
 
 	if err != nil {
 
 		return nil, err, nil
 	}
-	printPrettyResponse(resp)
 
 	if resp.StatusCode != 201 {
+		er := &ErrorResponse{}
+		json.NewDecoder(resp.Body).Decode(er)
+		return nil, nil, er
+
+	}
+
+	cur := &UserResponse{}
+
+	_ = json.NewDecoder(resp.Body).Decode(cur)
+
+	return cur, nil, nil
+
+}
+
+func CreateOrUpdateUser(name, email string) (*UserResponse, error, *ErrorResponse) {
+
+	u := UserCreate{Name: name, Email: email, Verified: true}
+
+	cu := UserRequest{User: u}
+	ts, err := bufferJSON(cu)
+	if err != nil {
+		return nil, err, nil
+	}
+	path := "/api/v2/users/create_or_update.json"
+
+	r, _ := http.NewRequest("POST", os.Getenv("ZENDESK_URL")+path, ts)
+	authenticateRequest(r)
+	r.Header.Set("Content-Type", "application/json")
+
+	resp, err := http.DefaultClient.Do(r)
+
+	if err != nil {
+
+		return nil, err, nil
+	}
+
+	if resp.StatusCode != 201 && resp.StatusCode != 200 {
 		er := &ErrorResponse{}
 		json.NewDecoder(resp.Body).Decode(er)
 		return nil, nil, er
