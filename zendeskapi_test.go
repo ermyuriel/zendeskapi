@@ -9,7 +9,9 @@ import (
 
 func TestUserCreation(t *testing.T) {
 
-	cu, e, er := CreateUser("test_"+getTestTimestamp(), "test_"+getTestTimestamp()+"@eucj.mx")
+	ts := getTestTimestamp()
+
+	cu, e, er := CreateUser("test_"+ts, "test_"+ts+"@eucj.mx")
 	if e != nil {
 		log.Println(e)
 		t.Fail()
@@ -20,6 +22,22 @@ func TestUserCreation(t *testing.T) {
 		log.Println("User not created")
 		printPrettyStruct(er)
 		t.Fail()
+	} else {
+
+		printPrettyStruct(cu)
+
+	}
+
+	cu, e, er = CreateUser("test_"+ts, "test_"+ts+"@eucj.mx")
+	if e != nil {
+		log.Println(e)
+		t.Fail()
+
+	}
+
+	if er != nil {
+		log.Println("User not created")
+		printPrettyStruct(er)
 	} else {
 
 		printPrettyStruct(cu)
